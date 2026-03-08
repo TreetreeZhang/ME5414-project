@@ -1,20 +1,10 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 import time
 import numpy as np
 from scipy.optimize import linprog
 
-
-@dataclass
-class SolveResult:
-    method: str
-    success: bool
-    status: int
-    message: str
-    objective: float
-    iterations: int
-    runtime_sec: float
+from me5414.core.models import SolveResult
 
 
 def solve_with_simplex(c: np.ndarray, A: np.ndarray, b: np.ndarray, tol: float) -> SolveResult:

@@ -23,4 +23,4 @@ conda run -n "$ENV_NAME" python -c "import numpy, scipy, pandas, matplotlib; pri
 
 echo "[DONE] Environment is ready."
 echo "Activate it with: conda activate $ENV_NAME"
-echo "Run project with: PYTHONPATH=src python scripts/run_experiments.py --repeats 5"
+echo "Run project with: python scripts/run_experiments.py --repeats 5"

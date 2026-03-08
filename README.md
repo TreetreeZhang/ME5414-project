@@ -1,36 +1,57 @@
-# ME5414 LP Solver Comparison (Even Matric No. -> Simplex)
+# ME5414 LP Solver Comparison (Even Matric Number)
 
+For even matric number, the non-interior-point method must be **Simplex**.
 This project compares:
-- Non-interior-point method: **Simplex** (`highs-ds`)
-- Interior-point method: **IPM** (`highs-ipm`)
+- **Simplex** (`highs-ds`)
+- **Interior-point** (`highs-ipm`)
 
-Both solvers handle LP in the form:
-- maximize `c^T x`
-- subject to `A x <= b`, `x >= 0`
+## Project Structure
 
-## Environment
+- `configs/experiment_default.json`: experiment configuration
+- `scripts/setup_env.sh`: conda environment setup
+- `scripts/check_env.py`: dependency check
+- `scripts/run_experiments.py`: CLI entry point
+- `src/me5414/core/`: config and shared dataclasses
+- `src/me5414/generation/`: LP instance generation
+- `src/me5414/solvers/`: solver wrappers
+- `src/me5414/pipeline/`: experiment orchestration and reporting
+- `src/me5414/cli/`: argument parsing and app bootstrap
+- `src/me5414/io/`: persistent local logging
+- `tests/test_smoke.py`: single smoke test suite
+
+## Problem Scenarios
+
+All generated LPs are bounded and have known optimum for error checking.
+
+- `baseline`: regular dense instances
+- `degenerate`: near-duplicate constraints + tiny slacks
+- `ill_conditioned`: wide coefficient scaling to stress numerics
+
+## Setup
 
 ```bash
-conda env create -f environment.yml
+bash scripts/setup_env.sh
 conda activate me5414-lp
+python scripts/check_env.py
 ```
 
-## Run Experiments
+## Run
 
 ```bash
-PYTHONPATH=src python scripts/run_experiments.py --repeats 5
+python scripts/run_experiments.py --repeats 5
+```
+
+## Test
+
+```bash
+pytest
 ```
 
 ## Outputs
 
-- Detailed results: `outputs/results_*.csv`
-- Aggregated summary: `outputs/summary_*.csv`
-- Full solver logs: `logs/solver_run_*.log`
+Each run writes to `outputs/runs/run_<timestamp>/`:
+- `results.csv`
+- `summary.csv`
+- `metadata.txt`
 
-## Logging system
-
-The logging system is in `src/me5414/logging_utils.py` and includes:
-- Console + file logging
-- Rotating file handler
-- Timestamped log filenames
-- Local persistence in `logs/`
+Solver logs are saved locally under `logs/solver_run_*.log`.

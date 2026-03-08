@@ -1,3 +1,31 @@
+# OS files
+.DS_Store
+
+# Python cache/bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Tool caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual/conda env local folders
+.venv/
+venv/
+env/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
+# Test/coverage artifacts
+.coverage
+.coverage.*
+htmlcov/
+
+# Project runtime artifacts
 logs/
-*pycache*
 outputs/

@@ -8,6 +8,7 @@ dependencies:
   - scipy
   - pandas
   - matplotlib
+  - pytest
   - pip
   - pip:
       - rich
