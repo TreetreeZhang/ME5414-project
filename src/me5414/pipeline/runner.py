@@ -13,37 +13,32 @@ from me5414.solvers.linear_solvers import solve_with_simplex, solve_with_ipm
 from me5414.pipeline.reporting import build_summary, create_run_dir, write_outputs
 
 
-def _run_case(
+def _solve_one_repeat(
     section: str,
     scenario: str,
-    n: int,
-    m: int,
+    problem_n: int,
+    problem_m: int,
     tol: float,
     repeat_id: int,
-    cfg: ExperimentConfig,
-    rng: np.random.Generator,
+    known_opt_obj: float,
+    density: float,
+    c: np.ndarray,
+    A: np.ndarray,
+    b: np.ndarray,
     logger: logging.Logger,
 ) -> list[dict]:
-    problem = generate_lp_problem(
-        n=n,
-        m=m,
-        scenario=scenario,
-        active_ratio=cfg.active_ratio,
-        zero_ratio=cfg.zero_ratio,
-        rng=rng,
-    )
-    simplex = solve_with_simplex(problem.c, problem.A, problem.b, tol=tol)
-    ipm = solve_with_ipm(problem.c, problem.A, problem.b, tol=tol)
+    simplex = solve_with_simplex(c, A, b, tol=tol)
+    ipm = solve_with_ipm(c, A, b, tol=tol)
 
     logger.info(
         "section=%s scenario=%s repeat=%d n=%d m=%d tol=%.1e dens=%.3f | simplex: ok=%s time=%.6fs nit=%d obj=%.8f | ipm: ok=%s time=%.6fs nit=%d obj=%.8f",
         section,
         scenario,
         repeat_id,
-        n,
-        m,
+        problem_n,
+        problem_m,
         tol,
-        problem.density,
+        density,
         simplex.success,
         simplex.runtime_sec,
         simplex.iterations,
@@ -61,12 +56,12 @@ def _run_case(
                 "section": section,
                 "scenario": scenario,
                 "repeat": repeat_id,
-                "n": n,
-                "m": m,
+                "n": problem_n,
+                "m": problem_m,
                 "tol": tol,
-                "density": problem.density,
-                "known_opt_obj": problem.known_opt_obj,
-                "abs_err": abs(result.objective - problem.known_opt_obj),
+                "density": density,
+                "known_opt_obj": known_opt_obj,
+                "abs_err": abs(result.objective - known_opt_obj),
                 **asdict(result),
             }
         )
@@ -83,16 +78,85 @@ def run_experiments(cfg: ExperimentConfig, out_dir: Path, logger: logging.Logger
 
     for scenario in cfg.scenarios:
         for n in cfg.n_values:
+            p = generate_lp_problem(
+                n=n,
+                m=cfg.m_fixed,
+                scenario=scenario,
+                active_ratio=cfg.active_ratio,
+                zero_ratio=cfg.zero_ratio,
+                rng=rng,
+            )
             for rep in range(cfg.repeats):
-                rows.extend(_run_case("vary_n", scenario, n, cfg.m_fixed, 1e-8, rep, cfg, rng, logger))
+                rows.extend(
+                    _solve_one_repeat(
+                        section="vary_n",
+                        scenario=scenario,
+                        problem_n=n,
+                        problem_m=cfg.m_fixed,
+                        tol=1e-8,
+                        repeat_id=rep,
+                        known_opt_obj=p.known_opt_obj,
+                        density=p.density,
+                        c=p.c,
+                        A=p.A,
+                        b=p.b,
+                        logger=logger,
+                    )
+                )
 
         for m in cfg.m_values:
+            p = generate_lp_problem(
+                n=cfg.n_fixed,
+                m=m,
+                scenario=scenario,
+                active_ratio=cfg.active_ratio,
+                zero_ratio=cfg.zero_ratio,
+                rng=rng,
+            )
             for rep in range(cfg.repeats):
-                rows.extend(_run_case("vary_m", scenario, cfg.n_fixed, m, 1e-8, rep, cfg, rng, logger))
+                rows.extend(
+                    _solve_one_repeat(
+                        section="vary_m",
+                        scenario=scenario,
+                        problem_n=cfg.n_fixed,
+                        problem_m=m,
+                        tol=1e-8,
+                        repeat_id=rep,
+                        known_opt_obj=p.known_opt_obj,
+                        density=p.density,
+                        c=p.c,
+                        A=p.A,
+                        b=p.b,
+                        logger=logger,
+                    )
+                )
 
         for tol in cfg.tolerances:
+            p = generate_lp_problem(
+                n=cfg.n_fixed,
+                m=cfg.m_fixed,
+                scenario=scenario,
+                active_ratio=cfg.active_ratio,
+                zero_ratio=cfg.zero_ratio,
+                rng=rng,
+            )
             for rep in range(cfg.repeats):
-                rows.extend(_run_case("vary_tol", scenario, cfg.n_fixed, cfg.m_fixed, tol, rep, cfg, rng, logger))
+                rows.extend(
+                    _solve_one_repeat(
+                        section="vary_tol",
+                        scenario=scenario,
+                        problem_n=cfg.n_fixed,
+                        problem_m=cfg.m_fixed,
+                        tol=tol,
+                        repeat_id=rep,
+                        known_opt_obj=p.known_opt_obj,
+                        density=p.density,
+                        c=p.c,
+                        A=p.A,
+                        b=p.b,
+                        logger=logger,
+                    )
+                )
 
     df = pd.DataFrame(rows)
     summary = build_summary(df)

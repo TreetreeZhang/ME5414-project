@@ -1,0 +1,12 @@
+{
+  "seed": 5414,
+  "repeats": 10,
+  "n_fixed": 320,
+  "m_fixed": 320,
+  "n_values": [80, 160, 320, 480, 640],
+  "m_values": [80, 160, 320, 480, 640],
+  "tolerances": [1e-6, 1e-7, 1e-8, 1e-9],
+  "scenarios": ["baseline", "degenerate", "ill_conditioned"],
+  "active_ratio": 0.6,
+  "zero_ratio": 0.35
+}

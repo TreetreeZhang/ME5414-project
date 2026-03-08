@@ -29,3 +29,4 @@ htmlcov/
 # Project runtime artifacts
 logs/
 outputs/
+materials/
