@@ -3,6 +3,13 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 import logging
+import sys
+
+# Ensure local package import works without requiring PYTHONPATH.
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+SRC_DIR = PROJECT_ROOT / "src"
+if str(SRC_DIR) not in sys.path:
+    sys.path.insert(0, str(SRC_DIR))
 
 from me5414.logging_utils import setup_logging
 from me5414.experiment import ExperimentConfig, run_experiments
